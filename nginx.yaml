@@ -1,0 +1,67 @@
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-html
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: nginx-html
+        configMap:
+          name: nginx-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Welcome to my app</title>
+        <style>
+            body {
+                text-align: center;
+                font-size: 24px; 
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Welcome to my app</h1>
+        <p><small>This is Project Made by Ismail Helal </small></p>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: LoadBalancer
+EOF
